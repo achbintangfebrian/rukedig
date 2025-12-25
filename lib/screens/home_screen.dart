@@ -4,6 +4,8 @@ import 'package:rukedig/screens/profile_screen.dart';
 import 'package:rukedig/screens/my_courses_screen.dart';
 import 'package:rukedig/screens/login_screen.dart';
 
+import 'package:rukedig/models/user_profile.dart';
+
 class HomeScreen extends StatefulWidget {
   final int initialIndex;
   const HomeScreen({super.key, this.initialIndex = 0});
@@ -14,13 +16,20 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late int _selectedIndex;
+  
+  UserProfile _userProfile = UserProfile(
+     firstName: 'Ach Bintang',
+     lastName: 'Febrian',
+     email: 'user@365.rukedig.ac.id',
+     country: 'Indonesia',
+     description: 'Mahasiswa Teknik Informatika...',
+   );
 
-  // List of screens for bottom navigation
-  final List<Widget> _screens = [
-    const DashboardContent(),
-    const MyCoursesScreen(),
-    const ProfileScreen(),
-  ];
+  void _updateProfile(UserProfile newProfile) {
+    setState(() {
+      _userProfile = newProfile;
+    });
+  }
 
   @override
   void initState() {
@@ -36,6 +45,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> screens = [
+      const DashboardContent(),
+      const MyCoursesScreen(),
+      ProfileScreen(
+        userProfile: _userProfile,
+        onProfileUpdate: _updateProfile,
+      ),
+    ];
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -94,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                    ),
                    const SizedBox(height: 12),
                    Text(
-                    'User Name',
+                    '${_userProfile.firstName} ${_userProfile.lastName}',
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 18,
@@ -102,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   Text(
-                    'user@365.rukedig.ac.id',
+                    _userProfile.email,
                     style: GoogleFonts.poppins(
                       color: Colors.white70,
                       fontSize: 14,
@@ -156,7 +174,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      body: _screens[_selectedIndex],
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: screens,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(

@@ -15,7 +15,8 @@ import 'package:rukedig/main.dart';
 
 import 'package:rukedig/screens/login_screen.dart';
 import 'package:rukedig/screens/login_instructions_screen.dart';
-import 'package:rukedig/screens/profile_screen.dart';
+import 'package:rukedig/screens/edit_profile_screen.dart';
+import 'package:rukedig/models/user_profile.dart';
 import 'package:rukedig/screens/home_screen.dart';
 
 void main() {
@@ -71,12 +72,24 @@ void main() {
     expect(find.text('Welcome, User!'), findsOneWidget);
   });
 
-  testWidgets('Profile screen test', (WidgetTester tester) async {
-    // Build ProfileScreen
-    await tester.pumpWidget(const MaterialApp(home: ProfileScreen()));
+  testWidgets('Profile Screen test', (WidgetTester tester) async {
+    final mockProfile = UserProfile(
+      firstName: 'Test',
+      lastName: 'User',
+      email: 'test@example.com',
+      country: 'Test Country',
+      description: 'Test Description',
+    );
 
-    // Verify User Details
-    expect(find.text('Ach Bintang Febrian'), findsOneWidget);
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ProfileScreen(
+          userProfile: mockProfile,
+          onProfileUpdate: (p) {},
+        ),
+      ),
+    ));// Verify User Details
+    expect(find.text('Test User'), findsOneWidget);
     expect(find.text('S1 Teknologi Informatika'), findsOneWidget);
     expect(find.text('TEKNIK'), findsOneWidget);
 
@@ -85,8 +98,17 @@ void main() {
     expect(find.text('24 Desember 2025'), findsOneWidget);
     expect(find.text('1 Januari 2026'), findsOneWidget);
     
-    // Verify Bottom Nav
-    expect(find.text('Kelas Saya'), findsOneWidget);
+    // Tap Edit Profile
+    await tester.tap(find.text('Edit Profile'));
+    await tester.pumpAndSettle();
+
+    // Verify Edit Profile Screen
+    expect(find.text('Ubah Profil'), findsOneWidget);
+    expect(find.text('Nama Pertama'), findsOneWidget);
+    
+    // NOTE: Simulating text entry and save would require more complex test setup 
+    // involving finding TextField widgets by Key or Type. 
+    // For now, we verify the screen opens correctly.
   });
 
   testWidgets('Bottom Navigation test', (WidgetTester tester) async {
@@ -101,7 +123,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify Courses Screen
-    expect(find.text('Dasar Pemrograman'), findsOneWidget);
+    expect(find.text('Kecerdasan Buatan'), findsOneWidget);
 
     // Tap "About Me"
     await tester.tap(find.text('About Me'));

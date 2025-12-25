@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:rukedig/screens/login_screen.dart';
+import 'package:rukedig/screens/edit_profile_screen.dart';
+import 'package:rukedig/models/user_profile.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  final UserProfile userProfile;
+  final Function(UserProfile) onProfileUpdate;
 
+  const ProfileScreen({
+    super.key,
+    required this.userProfile,
+    required this.onProfileUpdate,
+  });
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -31,7 +45,6 @@ class ProfileScreen extends StatelessWidget {
                     radius: 60,
                     backgroundColor: Colors.grey,
                     child: Icon(Icons.person, size: 80, color: Colors.white),
-                    // backgroundImage: AssetImage('assets/images/profile.jpg'), // Uncomment if using asset
                   ),
                 ),
               ],
@@ -39,7 +52,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Ach Bintang Febrian',
+            '${widget.userProfile.firstName} ${widget.userProfile.lastName}',
             style: GoogleFonts.poppins(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -47,7 +60,7 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           Text(
-            'user@365.rukedig.ac.id',
+            widget.userProfile.email,
             style: GoogleFonts.poppins(
               fontSize: 14,
               color: Colors.grey[600],
@@ -121,7 +134,15 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                       final result = await Navigator.of(context).push(
+                         MaterialPageRoute(builder: (_) => EditProfileScreen(currentProfile: widget.userProfile)),
+                       );
+
+                       if (result != null && result is UserProfile) {
+                         widget.onProfileUpdate(result);
+                       }
+                    },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFFFF9800)),
                       padding: const EdgeInsets.symmetric(vertical: 14),
