@@ -3,6 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:rukedig/screens/profile_screen.dart';
 import 'package:rukedig/screens/my_courses_screen.dart';
 import 'package:rukedig/screens/login_screen.dart';
+import 'package:rukedig/screens/notification_screen.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:rukedig/models/user_profile.dart';
 
@@ -23,12 +26,29 @@ class _HomeScreenState extends State<HomeScreen> {
      email: 'user@365.rukedig.ac.id',
      country: 'Indonesia',
      description: 'Mahasiswa Teknik Informatika...',
+     profileImagePath: 'assets/images/ab.jpeg',
    );
 
   void _updateProfile(UserProfile newProfile) {
     setState(() {
       _userProfile = newProfile;
     });
+  }
+
+  ImageProvider _getProfileImage() {
+    final imagePath = _userProfile.profileImagePath;
+    if (imagePath != null) {
+      if (imagePath.startsWith('assets/')) {
+        return AssetImage(imagePath);
+      } else if (imagePath.startsWith('http')) {
+        return NetworkImage(imagePath);
+      } else {
+        return kIsWeb 
+            ? NetworkImage(imagePath)
+            : FileImage(File(imagePath)) as ImageProvider;
+      }
+    }
+    return const AssetImage('assets/images/ab.jpeg');
   }
 
   @override
@@ -71,6 +91,15 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: const Color(0xFFFF9800),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
+          // Notification icon
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const NotificationScreen()),
+              );
+            },
+          ),
           // Show profile icon only if not on profile tab
           if (_selectedIndex != 2)
             IconButton(
@@ -101,13 +130,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         setState(() => _selectedIndex = 2); // Switch to Profile
                         Navigator.pop(context); // Close Drawer
                      },
-                     child: Container(
-                       padding: const EdgeInsets.all(8),
-                       decoration: const BoxDecoration(
-                         shape: BoxShape.circle,
-                         color: Colors.white,
-                       ),
-                       child: const Icon(Icons.person, color: Color(0xFFFF9800), size: 32),
+                     child: CircleAvatar(
+                       radius: 32,
+                       backgroundImage: _getProfileImage(),
+                       backgroundColor: Colors.white,
                      ),
                    ),
                    const SizedBox(height: 12),

@@ -4,6 +4,7 @@ class UserProfile {
   final String email;
   final String country;
   final String description;
+  final String? profileImagePath;
 
   UserProfile({
     required this.firstName,
@@ -11,5 +12,6 @@ class UserProfile {
     required this.email,
     required this.country,
     required this.description,
+    this.profileImagePath,
   });
 }

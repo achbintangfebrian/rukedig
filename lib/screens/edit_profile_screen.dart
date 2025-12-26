@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:rukedig/models/user_profile.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfile currentProfile;
@@ -17,6 +20,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _emailController;
   late TextEditingController _countryController;
   late TextEditingController _descriptionController;
+  String? _selectedImagePath;
+  XFile? _selectedImageFile;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -26,6 +32,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController = TextEditingController(text: widget.currentProfile.email);
     _countryController = TextEditingController(text: widget.currentProfile.country);
     _descriptionController = TextEditingController(text: widget.currentProfile.description);
+    _selectedImagePath = widget.currentProfile.profileImagePath;
   }
 
   @override
@@ -36,6 +43,92 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _countryController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+      
+      if (image != null) {
+        setState(() {
+          _selectedImageFile = image;
+          _selectedImagePath = image.path;
+        });
+        
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Foto berhasil dipilih!'),
+              backgroundColor: Color(0xFFFF9800),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memilih foto: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildProfileImage() {
+    if (_selectedImageFile != null) {
+      // For web, use Network.image with the file path
+      if (kIsWeb) {
+        return CircleAvatar(
+          radius: 60,
+          backgroundColor: Colors.grey,
+          backgroundImage: NetworkImage(_selectedImageFile!.path),
+        );
+      } else {
+        // For mobile, use FileImage
+        return CircleAvatar(
+          radius: 60,
+          backgroundColor: Colors.grey,
+          backgroundImage: FileImage(File(_selectedImageFile!.path)),
+        );
+      }
+    } else if (_selectedImagePath != null) {
+      if (_selectedImagePath!.startsWith('assets/')) {
+        return CircleAvatar(
+          radius: 60,
+          backgroundColor: Colors.grey,
+          backgroundImage: AssetImage(_selectedImagePath!),
+        );
+      } else if (_selectedImagePath!.startsWith('http')) {
+        return CircleAvatar(
+          radius: 60,
+          backgroundColor: Colors.grey,
+          backgroundImage: NetworkImage(_selectedImagePath!),
+        );
+      } else {
+        return CircleAvatar(
+          radius: 60,
+          backgroundColor: Colors.grey,
+          backgroundImage: kIsWeb 
+              ? NetworkImage(_selectedImagePath!)
+              : FileImage(File(_selectedImagePath!)) as ImageProvider,
+        );
+      }
+    }
+    return const CircleAvatar(
+      radius: 60,
+      backgroundColor: Colors.grey,
+      backgroundImage: AssetImage('assets/images/ab.jpeg'),
+    );
   }
 
   @override
@@ -57,6 +150,60 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
+            // Profile Photo Section
+            Center(
+              child: Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFFFF9800), width: 3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.orange.withOpacity(0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: _buildProfileImage(),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF9800),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: _pickImage,
+              icon: const Icon(Icons.photo_library, color: Color(0xFFFF9800)),
+              label: Text(
+                'Ubah Foto',
+                style: GoogleFonts.poppins(
+                  color: const Color(0xFFFF9800),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
             _buildTextField(label: 'Nama Pertama', controller: _firstNameController),
             const SizedBox(height: 16),
             _buildTextField(label: 'Nama Terakhir', controller: _lastNameController),
@@ -78,6 +225,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     email: _emailController.text,
                     country: _countryController.text,
                     description: _descriptionController.text,
+                    profileImagePath: _selectedImagePath,
                   );
                   Navigator.pop(context, updatedProfile);
                 },

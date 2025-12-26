@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:rukedig/screens/login_screen.dart';
 import 'package:rukedig/screens/edit_profile_screen.dart';
 import 'package:rukedig/models/user_profile.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ProfileScreen extends StatefulWidget {
   final UserProfile userProfile;
@@ -19,6 +21,23 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  ImageProvider _getProfileImage() {
+    final imagePath = widget.userProfile.profileImagePath;
+    if (imagePath != null) {
+      if (imagePath.startsWith('assets/')) {
+        return AssetImage(imagePath);
+      } else if (imagePath.startsWith('http')) {
+        return NetworkImage(imagePath);
+      } else {
+        // For web, use NetworkImage with blob URL; for mobile use FileImage
+        return kIsWeb 
+            ? NetworkImage(imagePath)
+            : FileImage(File(imagePath)) as ImageProvider;
+      }
+    }
+    return const AssetImage('assets/images/ab.jpeg');
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -41,10 +60,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ],
                   ),
-                  child: const CircleAvatar(
+                  child: CircleAvatar(
                     radius: 60,
+                    backgroundImage: _getProfileImage(),
                     backgroundColor: Colors.grey,
-                    child: Icon(Icons.person, size: 80, color: Colors.white),
                   ),
                 ),
               ],
